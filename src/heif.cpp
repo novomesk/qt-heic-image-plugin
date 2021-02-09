@@ -123,7 +123,7 @@ bool HEIFHandler::write(const QImage &image)
             chroma = heif_chroma_interleaved_RGBA;
         } else {
             tmpformat = QImage::Format_RGB888;
-            chroma = heif_chroma_interleaved_RGBA;
+            chroma = heif_chroma_interleaved_RGB;
         }
 
     }
@@ -151,8 +151,8 @@ bool HEIFHandler::write(const QImage &image)
         case 10:
             if (save_alpha) {
                 for (int y = 0; y < image.height(); y++) {
-                    const uint16_t *src_word = (const uint16_t *) tmpimage.constScanLine(y);
-                    uint16_t *dest_word = (uint16_t *)(dst + (y * stride));
+                    const uint16_t *src_word = reinterpret_cast<const uint16_t *>(tmpimage.constScanLine(y));
+                    uint16_t *dest_word = reinterpret_cast<uint16_t *>(dst + (y * stride));
                     for (int x = 0; x < tmpimage.width(); x++) {
                         int tmp_pixelval;
                         //R
@@ -179,8 +179,8 @@ bool HEIFHandler::write(const QImage &image)
                 }
             } else { //no alpha channel
                 for (int y = 0; y < image.height(); y++) {
-                    const uint16_t *src_word = (const uint16_t *) tmpimage.constScanLine(y);
-                    uint16_t *dest_word = (uint16_t *)(dst + (y * stride));
+                    const uint16_t *src_word = reinterpret_cast<const uint16_t *>(tmpimage.constScanLine(y));
+                    uint16_t *dest_word = reinterpret_cast<uint16_t *>(dst + (y * stride));
                     for (int x = 0; x < tmpimage.width(); x++) {
                         int tmp_pixelval;
                         //R
@@ -267,6 +267,7 @@ bool HEIFHandler::write(const QImage &image)
 
         heif::Context::EncodingOptions encodingOptions;
         encodingOptions.save_alpha_channel = save_alpha;
+        encodingOptions.macOS_compatibility_workaround = 0;
         ctx.encode_image(heifImage, encoder, encodingOptions);
 
         HeifQIODeviceWriter writer(device());
@@ -458,8 +459,8 @@ bool HEIFHandler::ensureDecoder()
         case 12:
             if (hasAlphaChannel) {
                 for (int y = 0; y < imageHeight; y++) {
-                    const uint16_t *src_word = (const uint16_t *)(src + (y * stride));
-                    uint16_t *dest_data = (uint16_t *) m_current_image.scanLine(y);
+                    const uint16_t *src_word = reinterpret_cast<const uint16_t *>(src + (y * stride));
+                    uint16_t *dest_data = reinterpret_cast<uint16_t *>(m_current_image.scanLine(y));
                     for (int x = 0; x < imageWidth; x++) {
                         int tmpvalue;
                         //R
@@ -490,8 +491,8 @@ bool HEIFHandler::ensureDecoder()
                 }
             } else { //no alpha channel
                 for (int y = 0; y < imageHeight; y++) {
-                    const uint16_t *src_word = (const uint16_t *)(src + (y * stride));
-                    uint16_t *dest_data = (uint16_t *) m_current_image.scanLine(y);
+                    const uint16_t *src_word = reinterpret_cast<const uint16_t *>(src + (y * stride));
+                    uint16_t *dest_data = reinterpret_cast<uint16_t *>(m_current_image.scanLine(y));
                     for (int x = 0; x < imageWidth; x++) {
                         int tmpvalue;
                         //R
@@ -522,8 +523,8 @@ bool HEIFHandler::ensureDecoder()
         case 10:
             if (hasAlphaChannel) {
                 for (int y = 0; y < imageHeight; y++) {
-                    const uint16_t *src_word = (const uint16_t *)(src + (y * stride));
-                    uint16_t *dest_data = (uint16_t *) m_current_image.scanLine(y);
+                    const uint16_t *src_word = reinterpret_cast<const uint16_t *>(src + (y * stride));
+                    uint16_t *dest_data = reinterpret_cast<uint16_t *>(m_current_image.scanLine(y));
                     for (int x = 0; x < imageWidth; x++) {
                         int tmpvalue;
                         //R
@@ -554,8 +555,8 @@ bool HEIFHandler::ensureDecoder()
                 }
             } else { //no alpha channel
                 for (int y = 0; y < imageHeight; y++) {
-                    const uint16_t *src_word = (const uint16_t *)(src + (y * stride));
-                    uint16_t *dest_data = (uint16_t *) m_current_image.scanLine(y);
+                    const uint16_t *src_word = reinterpret_cast<const uint16_t *>(src + (y * stride));
+                    uint16_t *dest_data = reinterpret_cast<uint16_t *>(m_current_image.scanLine(y));
                     for (int x = 0; x < imageWidth; x++) {
                         int tmpvalue;
                         //R
@@ -587,7 +588,7 @@ bool HEIFHandler::ensureDecoder()
             if (hasAlphaChannel) {
                 for (int y = 0; y < imageHeight; y++) {
                     const uint8_t *src_byte = src + (y * stride);
-                    uint32_t *dest_pixel = (uint32_t *) m_current_image.scanLine(y);
+                    uint32_t *dest_pixel = reinterpret_cast<uint32_t *>(m_current_image.scanLine(y));
                     for (int x = 0; x < imageWidth; x++) {
                         int red = *src_byte++;
                         int green = *src_byte++;
@@ -600,7 +601,7 @@ bool HEIFHandler::ensureDecoder()
             } else { //no alpha channel
                 for (int y = 0; y < imageHeight; y++) {
                     const uint8_t *src_byte = src + (y * stride);
-                    uint32_t *dest_pixel = (uint32_t *) m_current_image.scanLine(y);
+                    uint32_t *dest_pixel = reinterpret_cast<uint32_t *>(m_current_image.scanLine(y));
                     for (int x = 0; x < imageWidth; x++) {
                         int red = *src_byte++;
                         int green = *src_byte++;
