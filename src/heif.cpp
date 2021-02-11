@@ -324,6 +324,9 @@ bool HEIFHandler::canRead(QIODevice *device)
             return true;
         }
 
+        if (qstrncmp(buffer + 8, "mif2", 4) == 0) {
+            return true;
+        }
         if (qstrncmp(buffer + 8, "msf1", 4) == 0) {
             return true;
         }
@@ -399,12 +402,6 @@ bool HEIFHandler::ensureDecoder()
 
     const QByteArray buffer = device()->readAll();
     if (buffer.isEmpty()) {
-        m_parseState = ParseHeicError;
-        return false;
-    }
-
-    const heif_filetype_result supported_status = heif_check_filetype((const uint8_t *)buffer.constData(), buffer.size());
-    if (supported_status == heif_filetype_no) {
         m_parseState = ParseHeicError;
         return false;
     }
