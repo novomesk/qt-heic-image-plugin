@@ -150,7 +150,7 @@ bool HEIFHandler::write(const QImage &image)
         switch (save_depth) {
         case 10:
             if (save_alpha) {
-                for (int y = 0; y < image.height(); y++) {
+                for (int y = 0; y < tmpimage.height(); y++) {
                     const uint16_t *src_word = reinterpret_cast<const uint16_t *>(tmpimage.constScanLine(y));
                     uint16_t *dest_word = reinterpret_cast<uint16_t *>(dst + (y * stride));
                     for (int x = 0; x < tmpimage.width(); x++) {
@@ -178,7 +178,7 @@ bool HEIFHandler::write(const QImage &image)
                     }
                 }
             } else { //no alpha channel
-                for (int y = 0; y < image.height(); y++) {
+                for (int y = 0; y < tmpimage.height(); y++) {
                     const uint16_t *src_word = reinterpret_cast<const uint16_t *>(tmpimage.constScanLine(y));
                     uint16_t *dest_word = reinterpret_cast<uint16_t *>(dst + (y * stride));
                     for (int x = 0; x < tmpimage.width(); x++) {
@@ -206,7 +206,7 @@ bool HEIFHandler::write(const QImage &image)
             break;
         case 8:
             if (save_alpha) {
-                for (int y = 0; y < image.height(); y++) {
+                for (int y = 0; y < tmpimage.height(); y++) {
                     const uint8_t *src_byte = tmpimage.constScanLine(y);
                     uint8_t *dest_byte = dst + (y * stride);
                     for (int x = 0; x < tmpimage.width(); x++) {
@@ -229,7 +229,7 @@ bool HEIFHandler::write(const QImage &image)
                     }
                 }
             } else { //no alpha channel
-                for (int y = 0; y < image.height(); y++) {
+                for (int y = 0; y < tmpimage.height(); y++) {
                     const uint8_t *src_byte = tmpimage.constScanLine(y);
                     uint8_t *dest_byte = dst + (y * stride);
                     for (int x = 0; x < tmpimage.width(); x++) {
@@ -267,7 +267,15 @@ bool HEIFHandler::write(const QImage &image)
 
         heif::Context::EncodingOptions encodingOptions;
         encodingOptions.save_alpha_channel = save_alpha;
-        encodingOptions.macOS_compatibility_workaround = 0;
+
+        if ((tmpimage.width() % 2 == 1) || (tmpimage.height() % 2 == 1)) {
+            qWarning() << "Image has odd dimension!\nUse even-numbered dimension(s) for better compatibility with other HEIF implementations.";
+            if (save_alpha) {
+                // This helps to save alpha channel when image has odd dimension
+                encodingOptions.macOS_compatibility_workaround = 0;
+            }
+        }
+
         ctx.encode_image(heifImage, encoder, encodingOptions);
 
         HeifQIODeviceWriter writer(device());
@@ -415,7 +423,7 @@ bool HEIFHandler::ensureDecoder()
                 chroma = (QSysInfo::ByteOrder == QSysInfo::LittleEndian) ? heif_chroma_interleaved_RRGGBB_LE : heif_chroma_interleaved_RRGGBB_BE;
                 target_image_format = QImage::Format_RGBX64;
             }
-        } else { // 8bitdepth
+        } else { // 8bit depth
             if (hasAlphaChannel) {
                 chroma = heif_chroma_interleaved_RGBA;
                 target_image_format = QImage::Format_ARGB32;
