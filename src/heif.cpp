@@ -283,7 +283,7 @@ bool HEIFHandler::write(const QImage &image)
         ctx.write(writer);
 
     } catch (const heif::Error &err) {
-        qWarning() << QLatin1String("libheif error:") << QString::fromStdString(err.get_message());
+        qWarning() << "libheif error:" << err.get_message().c_str();
         return false;
     }
 
@@ -307,6 +307,9 @@ bool HEIFHandler::canRead(QIODevice *device)
         if (qstrncmp(buffer + 8, "heic", 4) == 0) {
             return true;
         }
+        if (qstrncmp(buffer + 8, "heis", 4) == 0) {
+            return true;
+        }
         if (qstrncmp(buffer + 8, "heix", 4) == 0) {
             return true;
         }
@@ -318,6 +321,10 @@ bool HEIFHandler::canRead(QIODevice *device)
                     return false;
                 }
             }
+            return true;
+        }
+
+        if (qstrncmp(buffer + 8, "msf1", 4) == 0) {
             return true;
         }
     }
@@ -397,7 +404,7 @@ bool HEIFHandler::ensureDecoder()
     }
 
     const heif_filetype_result supported_status = heif_check_filetype((const uint8_t *)buffer.constData(), buffer.size());
-    if (supported_status == heif_filetype_no || supported_status == heif_filetype_yes_unsupported) {
+    if (supported_status == heif_filetype_no) {
         m_parseState = ParseHeicError;
         return false;
     }
@@ -407,7 +414,7 @@ bool HEIFHandler::ensureDecoder()
         ctx.read_from_memory_without_copy((const void *)(buffer.constData()),
                                           buffer.size());
 
-        heif::ImageHandle handle = ctx.get_image_handle(ctx.get_primary_image_ID());
+        heif::ImageHandle handle = ctx.get_primary_image_handle();
 
         const bool hasAlphaChannel = handle.has_alpha_channel();
         const int bit_depth = handle.get_luma_bits_per_pixel();
@@ -712,7 +719,7 @@ bool HEIFHandler::ensureDecoder()
 
     } catch (const heif::Error &err) {
         m_parseState = ParseHeicError;
-        qWarning() << QLatin1String("libheif error:") << QString::fromStdString(err.get_message());
+        qWarning() << "libheif error:" << err.get_message().c_str();
         return false;
     }
 
