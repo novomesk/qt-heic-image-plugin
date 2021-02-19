@@ -26,7 +26,7 @@ endfunction()
 
 if (LibHeif_FOUND)
     kimageformats_add_plugin(kimg_heif JSON "heif.json" SOURCES heif.cpp)
-    target_link_libraries(kimg_heif ${LibHeif_LIBRARIES})
+    target_link_libraries(kimg_heif PkgConfig::LibHeif)
     kde_target_enable_exceptions(kimg_heif PRIVATE)
     install(FILES heif.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR}/qimageioplugins/)
 endif()

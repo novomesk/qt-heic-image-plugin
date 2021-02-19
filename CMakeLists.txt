@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.6)
 
 project(qt-heic-image-plugin)
 
@@ -24,7 +24,7 @@ find_package(Qt5Gui ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
 
 include(FindPkgConfig)
 
-pkg_check_modules(LibHeif libheif>=1.10.0)
+pkg_check_modules(LibHeif REQUIRED IMPORTED_TARGET libheif>=1.10.0)
 
 add_definitions(-DQT_NO_FOREACH)
 add_subdirectory(src)
