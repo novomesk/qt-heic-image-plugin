@@ -14,6 +14,7 @@
 #include <QColorSpace>
 #include <QDebug>
 #include <QSysInfo>
+#include <string.h>
 
 namespace   // Private.
 {
@@ -146,6 +147,7 @@ bool HEIFHandler::write(const QImage &image)
         heifImage.add_plane(heif_channel_interleaved, image.width(), image.height(), save_depth);
         int stride = 0;
         uint8_t *const dst = heifImage.get_plane(heif_channel_interleaved, &stride);
+        size_t rowbytes;
 
         switch (save_depth) {
         case 10:
@@ -205,48 +207,9 @@ bool HEIFHandler::write(const QImage &image)
             }
             break;
         case 8:
-            if (save_alpha) {
-                for (int y = 0; y < tmpimage.height(); y++) {
-                    const uint8_t *src_byte = tmpimage.constScanLine(y);
-                    uint8_t *dest_byte = dst + (y * stride);
-                    for (int x = 0; x < tmpimage.width(); x++) {
-                        //R
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                        //G
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                        //B
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                        //A
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                    }
-                }
-            } else { //no alpha channel
-                for (int y = 0; y < tmpimage.height(); y++) {
-                    const uint8_t *src_byte = tmpimage.constScanLine(y);
-                    uint8_t *dest_byte = dst + (y * stride);
-                    for (int x = 0; x < tmpimage.width(); x++) {
-                        //R
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                        //G
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                        //B
-                        *dest_byte = *src_byte;
-                        src_byte++;
-                        dest_byte++;
-                    }
-                }
+            rowbytes = save_alpha ? (tmpimage.width() * 4) : (tmpimage.width() * 3);
+            for (int y = 0; y < tmpimage.height(); y++) {
+                memcpy(dst + (y * stride), tmpimage.constScanLine(y), rowbytes);
             }
             break;
         default:
