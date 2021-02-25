@@ -382,7 +382,7 @@ bool HEIFHandler::ensureDecoder()
 
         QImage::Format target_image_format;
 
-        if (bit_depth > 8) { // 10 and 12bit depths
+        if (bit_depth == 10 || bit_depth == 12) {
             if (hasAlphaChannel) {
                 chroma = (QSysInfo::ByteOrder == QSysInfo::LittleEndian) ? heif_chroma_interleaved_RRGGBBAA_LE : heif_chroma_interleaved_RRGGBBAA_BE;
                 target_image_format = QImage::Format_RGBA64;
@@ -390,7 +390,7 @@ bool HEIFHandler::ensureDecoder()
                 chroma = (QSysInfo::ByteOrder == QSysInfo::LittleEndian) ? heif_chroma_interleaved_RRGGBB_LE : heif_chroma_interleaved_RRGGBB_BE;
                 target_image_format = QImage::Format_RGBX64;
             }
-        } else { // 8bit depth
+        } else if (bit_depth == 8) {
             if (hasAlphaChannel) {
                 chroma = heif_chroma_interleaved_RGBA;
                 target_image_format = QImage::Format_ARGB32;
@@ -398,6 +398,14 @@ bool HEIFHandler::ensureDecoder()
                 chroma = heif_chroma_interleaved_RGB;
                 target_image_format = QImage::Format_RGB32;
             }
+        } else {
+            m_parseState = ParseHeicError;
+            if (bit_depth > 0) {
+                qWarning() << "Unsupported bit depth:" << bit_depth;
+            } else {
+                qWarning() << "Undefined bit depth.";
+            }
+            return false;
         }
 
 
