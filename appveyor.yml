@@ -23,26 +23,19 @@ install:
     cd ..\..
 build_script:
 - cmd: >-
-    cd qtbuild_5.14.2
-
-    C:\Qt\5.14.2\msvc2017_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
-
-    nmake.exe
-
-    cd ../qtbuild_5.15.2
+    cd qtbuild_5.15.2
 
     C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
 
     nmake.exe
 
-    cd ../qtbuild_6.2.2
+    cd ../qtbuild_6.2.4
 
-    C:\Qt\6.2.2\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
+    C:\Qt\6.2.4\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
 
     nmake.exe
 artifacts:
-- path: qtbuild_5.14.2\plugins\imageformats\kimg_heif.dll
 - path: qtbuild_5.15.2\plugins\imageformats\kimg_heif.dll
-- path: qtbuild_6.2.2\plugins\imageformats\kimg_heif.dll
+- path: qtbuild_6.2.4\plugins\imageformats\kimg_heif.dll
 - path: 3rdparty\install\bin\heif.dll
 - path: 3rdparty\install\bin\libde265.dll
