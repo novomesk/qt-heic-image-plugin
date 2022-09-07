@@ -2,7 +2,7 @@ TARGET = kimg_heif
 
 INCLUDEPATH += ../3rdparty/install/include
 
-HEADERS = ../src/heif_p.h
+HEADERS = ../src/heif_p.h ../src/util_p.h
 SOURCES = ../src/heif.cpp
 OTHER_FILES = ../src/heif.json
 
