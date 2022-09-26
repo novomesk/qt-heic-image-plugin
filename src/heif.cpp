@@ -387,6 +387,7 @@ bool HEIFHandler::ensureParsed() const
 #endif
     return success;
 }
+
 bool HEIFHandler::ensureDecoder()
 {
     if (m_parseState != ParseHeicNotParsed) {
@@ -404,7 +405,7 @@ bool HEIFHandler::ensureDecoder()
 
     try {
         heif::Context ctx;
-        ctx.read_from_memory_without_copy((const void *)(buffer.constData()), buffer.size());
+        ctx.read_from_memory_without_copy(static_cast<const void *>(buffer.constData()), buffer.size());
 
         heif::ImageHandle handle = ctx.get_primary_image_handle();
 
@@ -727,62 +728,50 @@ bool HEIFHandler::ensureDecoder()
 
 bool HEIFHandler::isHeifDecoderAvailable()
 {
-    if (m_heif_decoder_available) {
-        return true;
-    }
-
-    if (m_plugins_queried) {
-        return false;
-    }
-
     QMutexLocker locker(&getHEIFHandlerMutex());
 
+    if (!m_plugins_queried) {
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
-    if (m_initialized_count == 0) {
-        heif_init(nullptr);
-    }
+        if (m_initialized_count == 0) {
+            heif_init(nullptr);
+        }
 #endif
 
-    m_heif_encoder_available = heif_have_encoder_for_format(heif_compression_HEVC);
-    m_heif_decoder_available = heif_have_decoder_for_format(heif_compression_HEVC);
-    m_plugins_queried = true;
+        m_heif_encoder_available = heif_have_encoder_for_format(heif_compression_HEVC);
+        m_heif_decoder_available = heif_have_decoder_for_format(heif_compression_HEVC);
+        m_plugins_queried = true;
 
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
-    if (m_initialized_count == 0) {
-        heif_deinit();
-    }
+        if (m_initialized_count == 0) {
+            heif_deinit();
+        }
 #endif
+    }
 
     return m_heif_decoder_available;
 }
 
 bool HEIFHandler::isHeifEncoderAvailable()
 {
-    if (m_heif_encoder_available) {
-        return true;
-    }
-
-    if (m_plugins_queried) {
-        return false;
-    }
-
     QMutexLocker locker(&getHEIFHandlerMutex());
 
+    if (!m_plugins_queried) {
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
-    if (m_initialized_count == 0) {
-        heif_init(nullptr);
-    }
+        if (m_initialized_count == 0) {
+            heif_init(nullptr);
+        }
 #endif
 
-    m_heif_decoder_available = heif_have_decoder_for_format(heif_compression_HEVC);
-    m_heif_encoder_available = heif_have_encoder_for_format(heif_compression_HEVC);
-    m_plugins_queried = true;
+        m_heif_decoder_available = heif_have_decoder_for_format(heif_compression_HEVC);
+        m_heif_encoder_available = heif_have_encoder_for_format(heif_compression_HEVC);
+        m_plugins_queried = true;
 
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
-    if (m_initialized_count == 0) {
-        heif_deinit();
-    }
+        if (m_initialized_count == 0) {
+            heif_deinit();
+        }
 #endif
+    }
 
     return m_heif_encoder_available;
 }
