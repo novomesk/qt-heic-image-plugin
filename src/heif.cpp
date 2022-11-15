@@ -637,7 +637,7 @@ bool HEIFHandler::ensureDecoder()
         heif_color_profile_type profileType = heif_image_handle_get_color_profile_type(handle.get_raw_image_handle());
         struct heif_error err;
         if (profileType == heif_color_profile_type_prof || profileType == heif_color_profile_type_rICC) {
-            int rawProfileSize = (int)heif_image_handle_get_raw_color_profile_size(handle.get_raw_image_handle());
+            size_t rawProfileSize = heif_image_handle_get_raw_color_profile_size(handle.get_raw_image_handle());
             if (rawProfileSize > 0) {
                 QByteArray ba(rawProfileSize, 0);
                 err = heif_image_handle_get_raw_color_profile(handle.get_raw_image_handle(), ba.data());
