@@ -10,7 +10,7 @@ PLUGIN_TYPE = imageformats
 PLUGIN_CLASS_NAME = HEIFPlugin
 load(qt_plugin)
 
-CONFIG += release skip_target_version_ext c++14 warn_on exceptions
+CONFIG += release skip_target_version_ext c++14 warn_on
 CONFIG -= separate_debug_info debug debug_and_release force_debug_info
 
 QMAKE_TARGET_COMPANY = "Daniel Novomesky"
