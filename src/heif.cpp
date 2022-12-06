@@ -2,7 +2,7 @@
     High Efficiency Image File Format (HEIF) support for QImage.
 
     SPDX-FileCopyrightText: 2020 Sirius Bakke <sirius@bakke.co>
-    SPDX-FileCopyrightText: 2021-2022 Daniel Novomesky <dnovomesky@gmail.com>
+    SPDX-FileCopyrightText: 2021 Daniel Novomesky <dnovomesky@gmail.com>
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
@@ -233,6 +233,8 @@ bool HEIFHandler::write_helper(const QImage &image)
         break;
     default:
         qWarning() << "Unsupported depth:" << save_depth;
+        heif_image_release(h_image);
+        heif_context_free(context);
         return false;
         break;
     }
