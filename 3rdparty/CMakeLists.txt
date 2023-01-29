@@ -23,8 +23,8 @@ SET(EXTPREFIX_heif "${EXTPREFIX}" )
 ExternalProject_Add(
     ext_libde265
     DOWNLOAD_DIR ${EXTERNALS_DOWNLOAD_DIR}
-    URL https://github.com/strukturag/libde265/releases/download/v1.0.9/libde265-1.0.9.tar.gz
-    URL_HASH SHA1=703bbae21963845fca9d178baf7ff70581f8589c
+    URL https://github.com/strukturag/libde265/releases/download/v1.0.10/libde265-1.0.10.tar.gz
+    URL_HASH SHA256=8761333dd823a30fe19668b5290686d5438e0448d0c7d2e81ad49a75741c34a4
 
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTPREFIX_heif} -DCMAKE_BUILD_TYPE=Release -DENABLE_DECODER=OFF -DENABLE_ENCODER=OFF
 
