@@ -1,4 +1,4 @@
-version: 0.3.0.{build}
+version: 0.3.1.{build}
 environment:
   CC: cl.exe
   CXX: cl.exe
@@ -35,6 +35,6 @@ build_script:
 
     nmake.exe
 artifacts:
-- path: qtbuild_5.15.2\plugins\imageformats\kimg_heif.dll
-- path: qtbuild_6.5.3\kimg_heif.dll
+- path: qtbuild_5.15.2\plugins\imageformats\*.dll
+- path: qtbuild_6.5.3\*.dll
 - path: 3rdparty\install\bin\*.dll
