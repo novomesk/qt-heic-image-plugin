@@ -19,8 +19,10 @@ include(KDECMakeSettings)
 
 include(CheckIncludeFiles)
 
-set(REQUIRED_QT_VERSION 5.14.0)
-find_package(Qt5Gui ${REQUIRED_QT_VERSION} REQUIRED NO_MODULE)
+if(NOT DEFINED QT_MAJOR_VERSION)
+set(QT_MAJOR_VERSION "5")
+endif()
+find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS Gui)
 
 include(FindPkgConfig)
 

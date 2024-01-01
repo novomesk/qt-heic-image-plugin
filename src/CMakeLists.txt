@@ -18,7 +18,7 @@ function(kimageformats_add_plugin plugin)
     add_library(${plugin} MODULE ${KIF_ADD_PLUGIN_SOURCES})
     set_property(TARGET ${plugin} APPEND PROPERTY AUTOGEN_TARGET_DEPENDS ${json})
     set_target_properties(${plugin} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/imageformats")
-    target_link_libraries(${plugin} Qt5::Gui)
+    target_link_libraries(${plugin} Qt::Gui)
     install(TARGETS ${plugin} DESTINATION ${KDE_INSTALL_QTPLUGINDIR}/imageformats)
 endfunction()
 
@@ -27,7 +27,10 @@ endfunction()
 if (LibHeif_FOUND)
     kimageformats_add_plugin(kimg_heif JSON "heif.json" SOURCES heif.cpp)
     target_link_libraries(kimg_heif PkgConfig::LibHeif)
-    install(FILES heif.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR}/qimageioplugins/)
+    if (QT_MAJOR_VERSION STRLESS "6")
+        #TODO: Find out where should we place the heif.desktop file in KF6
+        install(FILES heif.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR}/qimageioplugins/)
+    endif()
 endif()
 
 ##################################
