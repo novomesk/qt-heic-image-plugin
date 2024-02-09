@@ -1,10 +1,11 @@
-version: 0.3.1.{build}
+version: 0.4.0.{build}
+image: Visual Studio 2022
 environment:
   CC: cl.exe
   CXX: cl.exe
 install:
 - cmd: >-
-    call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+    call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 
     cd 3rdparty
 
