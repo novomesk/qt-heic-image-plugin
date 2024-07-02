@@ -1,4 +1,4 @@
-version: 0.4.0.{build}
+version: 0.4.1.{build}
 image: Visual Studio 2022
 environment:
   CC: cl.exe
@@ -35,7 +35,15 @@ build_script:
     C:\Qt\6.5.3\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
 
     nmake.exe
+
+    cd ../qtbuild_6.7.1
+
+    C:\Qt\6.7.1\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
+
+    nmake.exe
+
 artifacts:
 - path: qtbuild_5.15.2\plugins\imageformats\*.dll
 - path: qtbuild_6.5.3\*.dll
+- path: qtbuild_6.7.1\*.dll
 - path: 3rdparty\install\bin\*.dll
