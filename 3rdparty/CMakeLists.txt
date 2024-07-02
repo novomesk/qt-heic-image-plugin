@@ -24,8 +24,8 @@ ExternalProject_Add(
     ext_openjpeg
     DOWNLOAD_DIR ${EXTERNALS_DOWNLOAD_DIR}
 
-    URL https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.0.tar.gz
-    URL_HASH SHA256=0333806d6adecc6f7a91243b2b839ff4d2053823634d4f6ed7a59bc87409122a
+    URL https://github.com/uclouvain/openjpeg/archive/refs/tags/v2.5.2.tar.gz
+    URL_HASH SHA256=90e3896fed910c376aaf79cdd98bdfdaf98c6472efd8e1debf0a854938cbda6a
 
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTPREFIX_heif} -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_LIBS=OFF -DBUILD_CODEC=OFF
 
