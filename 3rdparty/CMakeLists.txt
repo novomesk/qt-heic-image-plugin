@@ -45,8 +45,8 @@ ExternalProject_Add(
     ext_libheif
     DOWNLOAD_DIR ${EXTERNALS_DOWNLOAD_DIR}
 
-    URL https://github.com/strukturag/libheif/releases/download/v1.17.6/libheif-1.17.6.tar.gz
-    URL_HASH SHA256=8390baf4913eda0a183e132cec62b875fb2ef507ced5ddddc98dfd2f17780aee
+    URL https://github.com/strukturag/libheif/releases/download/v1.18.0/libheif-1.18.0.tar.gz
+    URL_HASH SHA256=3f25f516d84401d7c22a24ef313ae478781b95f235c250b06152701c401055c3
 
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTPREFIX_heif} -DCMAKE_BUILD_TYPE=Release -DENABLE_PLUGIN_LOADING=OFF -DWITH_AOM_DECODER=OFF -DWITH_AOM_ENCODER=OFF -DWITH_DAV1D=OFF -DWITH_LIBDE265=ON -DWITH_RAV1E=OFF -DWITH_X265=OFF -DWITH_SvtEnc=OFF -DWITH_OpenJPEG_DECODER=ON -DWITH_EXAMPLES=OFF
 
