@@ -159,7 +159,25 @@ bool HEIFHandler::write_helper(const QImage &image)
         }
     }
 
-    const QImage tmpimage = image.convertToFormat(tmpformat);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+    QImage tmpimage;
+    auto cs = image.colorSpace();
+    if (cs.isValid() && cs.colorModel() == QColorSpace::ColorModel::Cmyk && image.format() == QImage::Format_CMYK8888) {
+        tmpimage = image.convertedToColorSpace(QColorSpace(QColorSpace::SRgb), tmpformat);
+    } else if (cs.isValid() && cs.colorModel() == QColorSpace::ColorModel::Gray
+               && (image.format() == QImage::Format_Grayscale8 || image.format() == QImage::Format_Grayscale16)) {
+        QColorSpace::TransferFunction trc_new = cs.transferFunction();
+        float gamma_new = cs.gamma();
+        if (trc_new == QColorSpace::TransferFunction::Custom) {
+            trc_new = QColorSpace::TransferFunction::SRgb;
+        }
+        tmpimage = image.convertedToColorSpace(QColorSpace(QColorSpace::Primaries::SRgb, trc_new, gamma_new), tmpformat);
+    } else {
+        tmpimage = image.convertToFormat(tmpformat);
+    }
+#else
+    QImage tmpimage = image.convertToFormat(tmpformat);
+#endif
 
     struct heif_context *context = heif_context_alloc();
     struct heif_error err;
@@ -797,6 +815,14 @@ bool HEIFHandler::ensureDecoder()
             case 13:
                 q_trc = QColorSpace::TransferFunction::SRgb;
                 break;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 8, 0))
+            case 16:
+                q_trc = QColorSpace::TransferFunction::St2084;
+                break;
+            case 18:
+                q_trc = QColorSpace::TransferFunction::Hlg;
+                break;
+#endif
             default:
                 qWarning("CICP color_primaries: %d, transfer_characteristics: %d\nThe colorspace is unsupported by this plug-in yet.",
                          nclx->color_primaries,
