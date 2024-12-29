@@ -75,6 +75,11 @@ bool HEIFHandler::canRead() const
                 setFormat("hej2");
                 return true;
             }
+
+            if (HEIFHandler::isSupportedAVCI(header)) {
+                setFormat("avci");
+                return true;
+            }
         }
         return false;
     }
@@ -1013,15 +1018,9 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
     if (device->isReadable()) {
         const QByteArray header = device->peek(28);
 
-        if (HEIFHandler::isSupportedBMFFType(header) && HEIFHandler::isHeifDecoderAvailable()) {
-            cap |= CanRead;
-        }
-
-        if (HEIFHandler::isSupportedHEJ2(header) && HEIFHandler::isHej2DecoderAvailable()) {
-            cap |= CanRead;
-        }
-
-        if (HEIFHandler::isSupportedAVCI(header) && HEIFHandler::isAVCIDecoderAvailable()) {
+        if ((HEIFHandler::isSupportedBMFFType(header) && HEIFHandler::isHeifDecoderAvailable())
+            || (HEIFHandler::isSupportedHEJ2(header) && HEIFHandler::isHej2DecoderAvailable())
+            || (HEIFHandler::isSupportedAVCI(header) && HEIFHandler::isAVCIDecoderAvailable())) {
             cap |= CanRead;
         }
     }
