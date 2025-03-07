@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.6)
 
 project(qt-heic-image-plugin)
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 
 include(FeatureSummary)
 find_package(ECM 5.89.0  NO_MODULE)

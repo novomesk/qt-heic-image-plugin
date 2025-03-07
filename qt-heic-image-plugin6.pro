@@ -8,7 +8,7 @@ LIBS += -lheif
 
 TEMPLATE = lib
 
-CONFIG += release skip_target_version_ext c++14 warn_on plugin
+CONFIG += release skip_target_version_ext c++17 warn_on plugin
 CONFIG -= separate_debug_info debug debug_and_release force_debug_info
 
 QMAKE_TARGET_COMPANY = "Daniel Novomesky"
