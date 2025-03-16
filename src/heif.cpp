@@ -23,6 +23,7 @@ bool HEIFHandler::m_plugins_queried = false;
 bool HEIFHandler::m_heif_decoder_available = false;
 bool HEIFHandler::m_heif_encoder_available = false;
 bool HEIFHandler::m_hej2_decoder_available = false;
+bool HEIFHandler::m_hej2_encoder_available = false;
 bool HEIFHandler::m_avci_decoder_available = false;
 
 extern "C" {
@@ -145,6 +146,14 @@ bool HEIFHandler::write_helper(const QImage &image)
         }
         break;
     }
+
+    heif_compression_format encoder_codec = heif_compression_HEVC;
+#if LIBHEIF_HAVE_VERSION(1, 13, 0)
+    if (format() == "hej2") {
+        encoder_codec = heif_compression_JPEG2000;
+        save_depth = 8; // for compatibility reasons
+    }
+#endif
 
     heif_chroma chroma;
     if (save_depth > 8) {
@@ -278,7 +287,7 @@ bool HEIFHandler::write_helper(const QImage &image)
     }
 
     struct heif_encoder *encoder = nullptr;
-    err = heif_context_get_encoder_for_format(context, heif_compression_HEVC, &encoder);
+    err = heif_context_get_encoder_for_format(context, encoder_codec, &encoder);
     if (err.code) {
         qWarning() << "Unable to get an encoder instance:" << err.message;
         heif_image_release(h_image);
@@ -961,6 +970,13 @@ bool HEIFHandler::isHej2DecoderAvailable()
     return m_hej2_decoder_available;
 }
 
+bool HEIFHandler::isHej2EncoderAvailable()
+{
+    HEIFHandler::queryHeifLib();
+
+    return m_hej2_encoder_available;
+}
+
 bool HEIFHandler::isAVCIDecoderAvailable()
 {
     HEIFHandler::queryHeifLib();
@@ -983,6 +999,7 @@ void HEIFHandler::queryHeifLib()
         m_heif_decoder_available = heif_have_decoder_for_format(heif_compression_HEVC);
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
         m_hej2_decoder_available = heif_have_decoder_for_format(heif_compression_JPEG2000);
+        m_hej2_encoder_available = heif_have_encoder_for_format(heif_compression_JPEG2000);
 #endif
 #if LIBHEIF_HAVE_VERSION(1, 19, 6)
         m_avci_decoder_available = heif_have_decoder_for_format(heif_compression_AVC);
@@ -1051,6 +1068,9 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
         if (HEIFHandler::isHej2DecoderAvailable()) {
             format_cap |= CanRead;
         }
+        if (HEIFHandler::isHej2EncoderAvailable()) {
+            format_cap |= CanWrite;
+        }
         return format_cap;
     }
 
@@ -1080,7 +1100,7 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
         }
     }
 
-    if (device->isWritable() && HEIFHandler::isHeifEncoderAvailable()) {
+    if (device->isWritable() && (HEIFHandler::isHeifEncoderAvailable() || HEIFHandler::isHej2EncoderAvailable())) {
         cap |= CanWrite;
     }
     return cap;
