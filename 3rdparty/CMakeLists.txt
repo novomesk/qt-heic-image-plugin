@@ -3,7 +3,7 @@ project (libheif-dependency)
 #Example:
 #cmake .. -DEXTERNALS_DOWNLOAD_DIR=/dev2/d -DINSTALL_ROOT=/dev2/i
 
-cmake_minimum_required(VERSION 3.7.2)
+cmake_minimum_required(VERSION 3.10)
 include(ExternalProject)
 
 if(NOT IS_DIRECTORY ${EXTERNALS_DOWNLOAD_DIR})
@@ -47,11 +47,11 @@ ExternalProject_Add(
     ext_libheif
     DOWNLOAD_DIR ${EXTERNALS_DOWNLOAD_DIR}
 
-#    URL https://github.com/strukturag/libheif/releases/download/v1.19.7/libheif-1.19.7.tar.gz
-#    URL_HASH SHA256=161c042d2102665fcee3ded851c78a0eb5f2d4bfe39fba48ba6e588fd6e964f3
-#    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
-    GIT_REPOSITORY https://github.com/strukturag/libheif.git
-    GIT_SHALLOW TRUE
+    URL https://github.com/strukturag/libheif/releases/download/v1.19.8/libheif-1.19.8.tar.gz
+    URL_HASH SHA256=6c4a5b08e6eae66d199977468859dea3b5e059081db8928f7c7c16e53836c906
+    DOWNLOAD_EXTRACT_TIMESTAMP FALSE
+#    GIT_REPOSITORY https://github.com/strukturag/libheif.git
+#    GIT_SHALLOW TRUE
 
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTPREFIX_heif} -DCMAKE_BUILD_TYPE=Release -DENABLE_PLUGIN_LOADING=OFF -DWITH_AOM_DECODER=OFF -DWITH_AOM_ENCODER=OFF -DWITH_DAV1D=OFF -DWITH_LIBDE265=ON -DWITH_RAV1E=OFF -DWITH_X265=OFF -DWITH_SvtEnc=OFF -DWITH_OpenJPEG_DECODER=ON -DWITH_OpenJPEG_ENCODER=ON -DWITH_OpenH264_DECODER=ON -DWITH_EXAMPLES=OFF
 
