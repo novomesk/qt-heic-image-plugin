@@ -44,26 +44,26 @@ install:
     cd ..\..
 build_script:
 - cmd: >-
-    cd qtbuild_5.15.2
-
-    C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
-
-    nmake.exe
-
-    cd ../qtbuild_6.5.3
+    cd qtbuild_6.5.3
 
     C:\Qt\6.5.3\msvc2019_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
 
     nmake.exe
 
-    cd ../qtbuild_6.8.1
+    cd ../qtbuild_6.8.3
 
-    C:\Qt\6.8.1\msvc2022_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
+    C:\Qt\6.8.3\msvc2022_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
+
+    nmake.exe
+
+    cd ../qtbuild_6.9.2
+
+    C:\Qt\6.9.2\msvc2022_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
 
     nmake.exe
 
 artifacts:
-- path: qtbuild_5.15.2\plugins\imageformats\*.dll
 - path: qtbuild_6.5.3\*.dll
-- path: qtbuild_6.8.1\*.dll
+- path: qtbuild_6.8.3\*.dll
+- path: qtbuild_6.9.2\*.dll
 - path: 3rdparty\install\bin\*.dll
