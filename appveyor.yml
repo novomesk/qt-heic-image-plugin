@@ -56,14 +56,14 @@ build_script:
 
     nmake.exe
 
-    cd ../qtbuild_6.9.2
+    cd ../qtbuild_6.9.3
 
-    C:\Qt\6.9.2\msvc2022_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
+    C:\Qt\6.9.3\msvc2022_64\bin\qmake.exe qt-heic-image-plugin_win64.pro
 
     nmake.exe
 
 artifacts:
 - path: qtbuild_6.5.3\*.dll
 - path: qtbuild_6.8.3\*.dll
-- path: qtbuild_6.9.2\*.dll
+- path: qtbuild_6.9.3\*.dll
 - path: 3rdparty\install\bin\*.dll
