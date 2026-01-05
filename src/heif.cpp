@@ -25,6 +25,7 @@ bool HEIFHandler::m_heif_encoder_available = false;
 bool HEIFHandler::m_hej2_decoder_available = false;
 bool HEIFHandler::m_hej2_encoder_available = false;
 bool HEIFHandler::m_avci_decoder_available = false;
+bool HEIFHandler::m_avci_encoder_available = false;
 
 extern "C" {
 static struct heif_error heifhandler_write_callback(struct heif_context * /* ctx */, const void *data, size_t size, void *userdata)
@@ -151,6 +152,12 @@ bool HEIFHandler::write_helper(const QImage &image)
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
     if (format() == "hej2") {
         encoder_codec = heif_compression_JPEG2000;
+        save_depth = 8; // for compatibility reasons
+    }
+#endif
+#if LIBHEIF_HAVE_VERSION(1, 21, 0)
+    if (format() == "avci") {
+        encoder_codec = heif_compression_AVC;
         save_depth = 8; // for compatibility reasons
     }
 #endif
@@ -295,12 +302,21 @@ bool HEIFHandler::write_helper(const QImage &image)
         return false;
     }
 
-    heif_encoder_set_lossy_quality(encoder, m_quality);
-    if (m_quality > 90) {
-        if (m_quality == 100) {
-            heif_encoder_set_lossless(encoder, true);
+    if (format() == "avci") { // workaround for limited h264 decoders
+        if (m_quality >= 98) { // OpenH264 will fail to decode quality 99 and 100
+            heif_encoder_set_lossy_quality(encoder, 98);
+        } else {
+            heif_encoder_set_lossy_quality(encoder, m_quality);
         }
-        heif_encoder_set_parameter_string(encoder, "chroma", "444");
+    } else {
+        heif_encoder_set_lossy_quality(encoder, m_quality);
+        if (m_quality > 90) {
+            if (m_quality == 100) {
+                heif_encoder_set_lossless(encoder, true);
+            }
+
+            heif_encoder_set_parameter_string(encoder, "chroma", "444");
+        }
     }
 
     struct heif_encoding_options *encoder_options = heif_encoding_options_alloc();
@@ -314,18 +330,109 @@ bool HEIFHandler::write_helper(const QImage &image)
         }
     }
 
-    err = heif_context_encode_image(context, h_image, encoder, encoder_options, nullptr);
+    if (format() == "avci" && (tmpimage.width() > 3840 || tmpimage.height() > 2160)) {
+#if LIBHEIF_HAVE_VERSION(1, 21, 0)
+        /* encode as grid so that OpenH264 can decode */
+        const uint32_t nColumns = (tmpimage.width() + 2047) / 2048;
+        const uint32_t nRows = (tmpimage.height() + 2047) / 2048;
 
-    if (encoder_options) {
-        heif_encoding_options_free(encoder_options);
-    }
+        heif_image_handle *tiled_image = nullptr;
 
-    if (err.code) {
-        qWarning() << "heif_context_encode_image failed:" << err.message;
+        err = heif_context_add_grid_image(context, tmpimage.width(), tmpimage.height(), nColumns, nRows, encoder_options, &tiled_image);
+        if (err.code) {
+            qWarning() << "heif_context_add_grid_image failed:" << err.message;
+            if (encoder_options) {
+                heif_encoding_options_free(encoder_options);
+            }
+            heif_encoder_release(encoder);
+            heif_image_release(h_image);
+            heif_context_free(context);
+            return false;
+        }
+
+        heif_security_limits *limits = heif_context_get_security_limits(context);
+
+        for (uint32_t rY = 0; rY < nRows; rY++) {
+            for (uint32_t rX = 0; rX < nColumns; rX++) {
+                heif_image *current_tile = nullptr;
+
+                err = heif_image_extract_area(h_image, rX * 2048, rY * 2048, 2048, 2048, limits, &current_tile);
+                if (err.code) {
+                    qWarning() << "heif_image_extract_area failed:" << err.message;
+                    heif_image_handle_release(tiled_image);
+                    if (encoder_options) {
+                        heif_encoding_options_free(encoder_options);
+                    }
+                    heif_encoder_release(encoder);
+                    heif_image_release(h_image);
+                    heif_context_free(context);
+                    return false;
+                }
+
+                err = heif_image_extend_to_size_fill_with_zero(current_tile, 2048, 2048);
+                if (err.code) {
+                    qWarning() << "heif_image_extend_to_size_fill_with_zero failed:" << err.message;
+                    heif_image_release(current_tile);
+                    heif_image_handle_release(tiled_image);
+                    if (encoder_options) {
+                        heif_encoding_options_free(encoder_options);
+                    }
+                    heif_encoder_release(encoder);
+                    heif_image_release(h_image);
+                    heif_context_free(context);
+                    return false;
+                }
+
+                if (iccprofile.size() > 0) {
+                    heif_image_set_raw_color_profile(current_tile, "prof", iccprofile.constData(), iccprofile.size());
+                }
+
+                err = heif_context_add_image_tile(context, tiled_image, rX, rY, current_tile, encoder);
+                heif_image_release(current_tile);
+                if (err.code) {
+                    qWarning() << "heif_context_add_image_tile failed:" << err.message;
+                    heif_image_handle_release(tiled_image);
+                    if (encoder_options) {
+                        heif_encoding_options_free(encoder_options);
+                    }
+                    heif_encoder_release(encoder);
+                    heif_image_release(h_image);
+                    heif_context_free(context);
+                    return false;
+                }
+            }
+        }
+
+        heif_context_set_primary_image(context, tiled_image);
+        heif_image_handle_release(tiled_image);
+
+        if (encoder_options) {
+            heif_encoding_options_free(encoder_options);
+        }
+#else
+        qWarning() << "Cannot encode AVCI image, libheif is too old!";
+        if (encoder_options) {
+            heif_encoding_options_free(encoder_options);
+        }
         heif_encoder_release(encoder);
         heif_image_release(h_image);
         heif_context_free(context);
         return false;
+#endif
+    } else {
+        err = heif_context_encode_image(context, h_image, encoder, encoder_options, nullptr);
+
+        if (encoder_options) {
+            heif_encoding_options_free(encoder_options);
+        }
+
+        if (err.code) {
+            qWarning() << "heif_context_encode_image failed:" << err.message;
+            heif_encoder_release(encoder);
+            heif_image_release(h_image);
+            heif_context_free(context);
+            return false;
+        }
     }
 
     struct heif_writer writer;
@@ -984,6 +1091,13 @@ bool HEIFHandler::isAVCIDecoderAvailable()
     return m_avci_decoder_available;
 }
 
+bool HEIFHandler::isAVCIEncoderAvailable()
+{
+    HEIFHandler::queryHeifLib();
+
+    return m_avci_encoder_available;
+}
+
 void HEIFHandler::queryHeifLib()
 {
     QMutexLocker locker(&getHEIFHandlerMutex());
@@ -1003,6 +1117,9 @@ void HEIFHandler::queryHeifLib()
 #endif
 #if LIBHEIF_HAVE_VERSION(1, 19, 6)
         m_avci_decoder_available = heif_have_decoder_for_format(heif_compression_AVC);
+#endif
+#if LIBHEIF_HAVE_VERSION(1, 21, 0)
+        m_avci_encoder_available = heif_have_encoder_for_format(heif_compression_AVC);
 #endif
         m_plugins_queried = true;
 
@@ -1079,6 +1196,9 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
         if (HEIFHandler::isAVCIDecoderAvailable()) {
             format_cap |= CanRead;
         }
+        if (HEIFHandler::isAVCIEncoderAvailable()) {
+            format_cap |= CanWrite;
+        }
         return format_cap;
     }
 
@@ -1100,7 +1220,7 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
         }
     }
 
-    if (device->isWritable() && (HEIFHandler::isHeifEncoderAvailable() || HEIFHandler::isHej2EncoderAvailable())) {
+    if (device->isWritable() && (HEIFHandler::isHeifEncoderAvailable() || HEIFHandler::isHej2EncoderAvailable() || HEIFHandler::isAVCIEncoderAvailable())) {
         cap |= CanWrite;
     }
     return cap;

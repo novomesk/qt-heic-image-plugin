@@ -33,6 +33,7 @@ public:
     static bool isHej2DecoderAvailable();
     static bool isHej2EncoderAvailable();
     static bool isAVCIDecoderAvailable();
+    static bool isAVCIEncoderAvailable();
 
     static bool isSupportedBMFFType(const QByteArray &header);
     static bool isSupportedHEJ2(const QByteArray &header);
@@ -65,6 +66,7 @@ private:
     static bool m_hej2_decoder_available;
     static bool m_hej2_encoder_available;
     static bool m_avci_decoder_available;
+    static bool m_avci_encoder_available;
 
     static QMutex &getHEIFHandlerMutex();
 };
