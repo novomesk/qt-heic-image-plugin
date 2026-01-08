@@ -3,9 +3,12 @@ Qt plug-in to allow Qt and KDE based applications to read/write HEIF/HEIC images
 
 Requirements:
 * Qt 5.14
-* [libheif](https://github.com/strukturag/libheif) 1.10.0 with
-  * libde265 decoder
+* [libheif](https://github.com/strukturag/libheif) 1.10.0 optionally with
+  * libde265 decoder - HEIC support
   * x265 encoder (built with 8bit and 10bit support)
+  * openh264 decoder - AVCI support
+  * x264 encoder
+  * openjpeg - HEJ2 support
 
 Code for download and compilation:
 ```
