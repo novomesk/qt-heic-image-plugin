@@ -26,6 +26,7 @@ bool HEIFHandler::m_hej2_decoder_available = false;
 bool HEIFHandler::m_hej2_encoder_available = false;
 bool HEIFHandler::m_avci_decoder_available = false;
 bool HEIFHandler::m_avci_encoder_available = false;
+bool HEIFHandler::m_jpeg_decoder_available = false;
 
 extern "C" {
 static struct heif_error heifhandler_write_callback(struct heif_context * /* ctx */, const void *data, size_t size, void *userdata)
@@ -521,6 +522,20 @@ bool HEIFHandler::isSupportedAVCI(const QByteArray &header)
     return false;
 }
 
+bool HEIFHandler::isSupportedJPEG(const QByteArray &header)
+{
+    if (header.size() < 28) {
+        return false;
+    }
+
+    const char *buffer = header.constData();
+    if (memcmp(buffer + 4, "ftypjpeg", 8) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
 QVariant HEIFHandler::option(ImageOption option) const
 {
     if (option == Quality) {
@@ -596,7 +611,8 @@ bool HEIFHandler::ensureDecoder()
     }
 
     const QByteArray buffer = device()->readAll();
-    if (!HEIFHandler::isSupportedBMFFType(buffer) && !HEIFHandler::isSupportedHEJ2(buffer) && !HEIFHandler::isSupportedAVCI(buffer)) {
+    if (!HEIFHandler::isSupportedBMFFType(buffer) && !HEIFHandler::isSupportedHEJ2(buffer) && !HEIFHandler::isSupportedAVCI(buffer)
+        && !HEIFHandler::isSupportedJPEG(buffer)) {
         m_parseState = ParseHeicError;
         return false;
     }
@@ -1098,6 +1114,13 @@ bool HEIFHandler::isAVCIEncoderAvailable()
     return m_avci_encoder_available;
 }
 
+bool HEIFHandler::isJPEGDecoderAvailable()
+{
+    HEIFHandler::queryHeifLib();
+
+    return m_jpeg_decoder_available;
+}
+
 void HEIFHandler::queryHeifLib()
 {
     QMutexLocker locker(&getHEIFHandlerMutex());
@@ -1121,6 +1144,8 @@ void HEIFHandler::queryHeifLib()
 #if LIBHEIF_HAVE_VERSION(1, 21, 0)
         m_avci_encoder_available = heif_have_encoder_for_format(heif_compression_AVC);
 #endif
+        m_jpeg_decoder_available = heif_have_decoder_for_format(heif_compression_JPEG);
+
         m_plugins_queried = true;
 
 #if LIBHEIF_HAVE_VERSION(1, 13, 0)
@@ -1215,7 +1240,8 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
 
         if ((HEIFHandler::isSupportedBMFFType(header) && HEIFHandler::isHeifDecoderAvailable())
             || (HEIFHandler::isSupportedHEJ2(header) && HEIFHandler::isHej2DecoderAvailable())
-            || (HEIFHandler::isSupportedAVCI(header) && HEIFHandler::isAVCIDecoderAvailable())) {
+            || (HEIFHandler::isSupportedAVCI(header) && HEIFHandler::isAVCIDecoderAvailable())
+            || (HEIFHandler::isSupportedJPEG(header) && HEIFHandler::isJPEGDecoderAvailable())) {
             cap |= CanRead;
         }
     }
