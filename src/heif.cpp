@@ -69,7 +69,7 @@ bool HEIFHandler::canRead() const
         if (dev) {
             const QByteArray header = dev->peek(28);
 
-            if (HEIFHandler::isSupportedBMFFType(header)) {
+            if (HEIFHandler::isSupportedBMFFType(header) || HEIFHandler::isSupportedJPEG(header)) {
                 setFormat("heif");
                 return true;
             }
@@ -618,7 +618,26 @@ bool HEIFHandler::ensureDecoder()
     }
 
     struct heif_context *ctx = heif_context_alloc();
-    struct heif_error err = heif_context_read_from_memory(ctx, static_cast<const void *>(buffer.constData()), buffer.size(), nullptr);
+    struct heif_error err;
+
+#if LIBHEIF_HAVE_VERSION(1, 19, 1)
+    heif_security_limits *heif_limits = heif_context_get_security_limits(ctx);
+    if (heif_limits) {
+        static constexpr uint32_t relaxed_childboxes_limit = 360;
+        if (heif_limits->max_children_per_box > 0 && heif_limits->max_children_per_box < relaxed_childboxes_limit) {
+            heif_limits->max_children_per_box = relaxed_childboxes_limit;
+        }
+
+        err = heif_context_set_security_limits(ctx, heif_limits);
+        if (err.code) {
+            qWarning() << "heif_context_set_security_limits error:" << err.message;
+            heif_context_free(ctx);
+            m_parseState = ParseHeicError;
+            return false;
+        }
+    }
+#endif
+    err = heif_context_read_from_memory(ctx, static_cast<const void *>(buffer.constData()), buffer.size(), nullptr);
 
     if (err.code) {
         qWarning() << "heif_context_read_from_memory error:" << err.message;
@@ -1201,6 +1220,14 @@ QImageIOPlugin::Capabilities HEIFPlugin::capabilities(QIODevice *device, const Q
         }
         if (HEIFHandler::isHeifEncoderAvailable()) {
             format_cap |= CanWrite;
+        }
+        return format_cap;
+    }
+
+    if (format == "hif") {
+        Capabilities format_cap;
+        if (HEIFHandler::isHeifDecoderAvailable()) {
+            format_cap |= CanRead;
         }
         return format_cap;
     }
