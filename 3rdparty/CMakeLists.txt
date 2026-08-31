@@ -47,8 +47,8 @@ ExternalProject_Add(
     ext_libheif
     DOWNLOAD_DIR ${EXTERNALS_DOWNLOAD_DIR}
 
-    URL https://github.com/strukturag/libheif/releases/download/v1.23.1/libheif-1.23.1.tar.gz
-    URL_HASH SHA256=0de0327f60fcd47de90d5654c6fe152232738d60d84fe084ec3e0f35e03b166a
+    URL https://github.com/strukturag/libheif/releases/download/v1.23.2/libheif-1.23.2.tar.gz
+    URL_HASH SHA256=8bd5d41d19dc84536d118b04774709f244df6104ef66d623dad5fa4650143405
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
 #    GIT_REPOSITORY https://github.com/strukturag/libheif.git
 #    GIT_SHALLOW TRUE
