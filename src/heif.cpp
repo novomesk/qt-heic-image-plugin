@@ -655,11 +655,22 @@ bool HEIFHandler::ensureDecoder()
         return false;
     }
 
-    if ((heif_image_handle_get_width(handle) == 0) || (heif_image_handle_get_height(handle) == 0)) {
+    const int handle_width = heif_image_handle_get_width(handle);
+    const int handle_height = heif_image_handle_get_height(handle);
+    if ((handle_width < 1) || (handle_height < 1)) {
         m_parseState = ParseHeicError;
         heif_image_handle_release(handle);
         heif_context_free(ctx);
-        qWarning() << "HEIC image has zero dimension";
+        qWarning() << "HEIF image has zero or invalid dimension";
+        return false;
+    }
+
+    static constexpr int imageDimensionLimit = 0xffff;
+    if ((handle_width > imageDimensionLimit) || (handle_height > imageDimensionLimit)) {
+        m_parseState = ParseHeicError;
+        heif_image_handle_release(handle);
+        heif_context_free(ctx);
+        qWarning() << "HEIF image signals large dimensions:" << handle_width << "x" << handle_height;
         return false;
     }
 
@@ -743,7 +754,7 @@ bool HEIFHandler::ensureDecoder()
         heif_image_handle_release(handle);
         heif_context_free(ctx);
         m_parseState = ParseHeicError;
-        qWarning() << "HEIC image size invalid:" << imageSize;
+        qWarning() << "HEIF image size invalid:" << imageSize;
         return false;
     }
 
@@ -755,7 +766,7 @@ bool HEIFHandler::ensureDecoder()
         heif_image_handle_release(handle);
         heif_context_free(ctx);
         m_parseState = ParseHeicError;
-        qWarning() << "HEIC data pixels information not valid!";
+        qWarning() << "HEIF data pixels information not valid!";
         return false;
     }
 
@@ -976,7 +987,7 @@ bool HEIFHandler::ensureDecoder()
             } else {
                 QColorSpace colorspace = QColorSpace::fromIccProfile(ba);
                 if (!colorspace.isValid()) {
-                    qWarning() << "HEIC image has Qt-unsupported or invalid ICC profile!";
+                    qWarning() << "HEIF image has Qt-unsupported or invalid ICC profile!";
                 }
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 8, 0))
                 else if (colorspace.colorModel() == QColorSpace::ColorModel::Cmyk) {
@@ -1076,7 +1087,7 @@ bool HEIFHandler::ensureDecoder()
             heif_nclx_color_profile_free(nclx);
 
             if (!m_current_image.colorSpace().isValid()) {
-                qWarning() << "HEIC plugin created invalid QColorSpace from NCLX!";
+                qWarning() << "HEIF plugin created invalid QColorSpace from NCLX!";
             }
         }
 
