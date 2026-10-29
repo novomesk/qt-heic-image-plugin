@@ -41,7 +41,7 @@ install:
 
     cd ..
 
-    git clone --depth 1 -b v2.6.0 https://github.com/cisco/openh264.git
+    git clone --depth 1 -b v2.7.0 https://github.com/cisco/openh264.git
 
     cd openh264
 
