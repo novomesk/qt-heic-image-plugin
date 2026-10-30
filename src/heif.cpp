@@ -627,14 +627,6 @@ bool HEIFHandler::ensureDecoder()
         if (heif_limits->max_children_per_box > 0 && heif_limits->max_children_per_box < relaxed_childboxes_limit) {
             heif_limits->max_children_per_box = relaxed_childboxes_limit;
         }
-
-        err = heif_context_set_security_limits(ctx, heif_limits);
-        if (err.code) {
-            qWarning() << "heif_context_set_security_limits error:" << err.message;
-            heif_context_free(ctx);
-            m_parseState = ParseHeicError;
-            return false;
-        }
     }
 #endif
     err = heif_context_read_from_memory(ctx, static_cast<const void *>(buffer.constData()), buffer.size(), nullptr);
